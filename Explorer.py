@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageTk
 import time
 import tkinter as tk
 from tkinter import ttk
@@ -21,7 +21,7 @@ def affiche_acceuil():
 def affiche_tuto():
     cadre_pile.append(cadre_tuto)  # Ajouter le cadre actuel à la pile
     afficher_cadre(cadre_tuto)
-    
+
 def affiche_biblio():
     cadre_pile.append(cadre_biblio)  # Ajouter le cadre actuel à la pile
     afficher_cadre(cadre_biblio)
@@ -32,13 +32,16 @@ def afficher_cadre(cadre):
     cadre.pack()
 
 
+
+global xmax, xmin, ymax, ymin, réso_x, réso_y, r, g, b, palette #variable de où je suis dans la fractale
 #valeurs de base
 xmax = 2
 xmin = -2
 ymax = 1.3875
 ymin = -1.387
-
-
+réso_x = 320
+réso_y = 222
+palette = []
 
 #génération de la fenètre
 fenetre = tk.Tk()
@@ -62,6 +65,15 @@ soustitre_biblio = tk.Label(cadre_biblio, text="Vous cherchez un exemple de frac
 titre_biblio.pack()
 soustitre_biblio.pack(pady=10)
 
+def image_biblio(image,x,y):
+    img = PhotoImage(file=image)
+    image_frame = tk.Label(cadre_biblio, image=img)
+    image_frame.image = img
+    image_frame.place(x=x,y=y)
+    cadre_biblio.update() 
+    
+image_biblio("Bibliotheque_image/1.png",100,10)
+
 titre_tuto = tk.Label(cadre_tuto, text="Guide des Touches", font=("Consolas", 20), bg="#C2C2C2", fg="black")
 soustitre_tuto = tk.Label(cadre_tuto, text="Vous vous sentez un peux  perdu ?", font=("Consolas", 15), bg="#C2C2C2", fg="black")
 titre_tuto.pack()
@@ -81,10 +93,10 @@ soustitre_acceuil.place(x=130,y=50)
 desc_liste_deroul_palette = tk.Label(cadre_acceuil, text="Choississez la palette de couleur que vous voulez utiliser", font=("Consolas", 12), bg="#C2C2C2", fg="black")
 desc_liste_deroul_palette.place(x=15,y=100)
 #création de la liste déroulante
-liste_choix = ["Blanc - Jaune - Noir","Blanc - Noir","Noir - Rouge - Noir","Noir - Bleu - Noir"]
+liste_choix = ["Blanc - Jaune - Noir","Blanc - Noir","Noir - Bleu - Noir","Blanc - Orange - Noir","Arc-en-ciel", "Noir - Rouge - Noir"]
 variable_palette = tk.StringVar()
 variable_palette.set("Blanc - Noir")
-liste_deroulante_palette = ttk.Combobox(cadre_acceuil, textvariable=variable_palette, values=liste_choix, state="readonly")
+liste_deroulante_palette = ttk.Combobox(cadre_acceuil, textvariable=variable_palette, values=liste_choix)
 liste_deroulante_palette.place(x=15,y=125)
 select = liste_deroulante_palette.get()
 
@@ -94,7 +106,7 @@ desc_liste_deroul_fractale.place(x=15,y=145)
 liste_choix = ["Julia","Mandelbrot"]
 variable_fractal = tk.StringVar()
 variable_fractal.set("Julia")
-liste_deroulante_fractal = ttk.Combobox(cadre_acceuil, textvariable=variable_fractal, values=liste_choix, state="readonly")
+liste_deroulante_fractal = ttk.Combobox(cadre_acceuil, textvariable=variable_fractal, values=liste_choix)
 liste_deroulante_fractal.place(x=15,y=170)
 
 desc1_chmp_val_julia = tk.Label(cadre_acceuil, text="Si vous avez choisi de générer une fractale de Julia :", font=("Consolas", 12), bg="#C2C2C2", fg="black")
@@ -117,7 +129,7 @@ desc_liste_deroul_resolution.place(x=15,y=270)
 liste_choix = ["320x222","480x333","720x555"]
 variable_resolution = tk.StringVar()
 variable_resolution.set("320x222")
-liste_deroulante_resolution = ttk.Combobox(cadre_acceuil, textvariable=variable_resolution, values=liste_choix, state="readonly")
+liste_deroulante_resolution = ttk.Combobox(cadre_acceuil, textvariable=variable_resolution, values=liste_choix)
 liste_deroulante_resolution.place(x=15,y=295)
 
 def selection_reso():
@@ -145,22 +157,83 @@ def selection_palette():
             r = 255 - 2 * (j - 128)
             g = 255 - 2 * (j - 128)
             palette.append((r, g, b))
+    elif select == "Noir - Bleu - Noir":
+        r,g,b=0,0,0
+        for i in range(0,64):
+            g=0+i
+            b=0+i*2
+            palette.append([r,g,b])
+        for i in range(0,64):
+            g=64+i
+            b=128+i*2
+            palette.append([r,g,b])
+        for i in range(0,64):
+            r=0+i
+            palette.append([r,g,b])
+        for i in range(0,64):
+            g=128+i*2
+            r=64+i*3
+            palette.append([r,g,b])
+    elif select == "Blanc - Orange - Noir":
+        r,g,b=240,240,240
+        for i in range(0,64):
+            r=240+i*(1/4)
+            g=240-i*(1/4)
+            b=240-i*(7/4)
+            palette.append([r,g,b])
+        for i in range(0,64):
+            g=224-i*(3/2)
+            b=128-i
+            palette.append([r,g,b])
+        for i in range(0,64):
+            g=128-i*(1/2)
+            palette.append([r,g,b])
+        for i in range(0,64):
+            b=64-i
+            g=64-i
+            r=255-i*4
+            palette.append([r,g,b])
+    elif select == "Arc-en-ciel":
+        r, g, b = 255,255,255
+        for j in range(0, 32):
+            b = 255 - 8 * j
+            g = 255 - 8 * j
+            palette.append((r, g, b))
+        for j in range(0, 32):
+            g = 0 + 8 * j
+            palette.append((r, g, b))
+        for j in range(0, 32):
+            r = 255 - 4 * j
+            palette.append((r, g, b))
+        for j in range(0, 32):
+            r = 128 - 4 * j
+            palette.append((r, g, b))
+        for j in range(0, 32):
+            b = 0 + 6 * j
+            palette.append((r, g, b))
+        for j in range(0, 32):
+            r = 0 + 2 * j
+            b = 192 + 2 * j
+            palette.append((r, g, b))
+        for j in range(0, 32):
+            r = 64 + 2 * j
+            palette.append((r, g, b))
+        for j in range(0, 32):
+            r = 128 - 4 * j
+            b = 255 - 8 * j
+            g = 255 - 8 * j
+            palette.append((r, g, b))
     elif select == "Noir - Rouge - Noir":
         r, g, b = 0, 0, 0
-        for j in range(0, 128):
-            r = 0 + 2 * j
+        for j in range(0, 85):
+            r = 0 + (j/2)
             palette.append((r, g, b))
-        for j in range(128, 256):
-            r = 255 - 2 * (j - 128)
+        for j in range(0, 85):
+            r = 64 + j * 3/2
             palette.append((r, g, b))
-    elif select == "Noir - Bleu - Noir":
-        r, g, b = 0, 0, 0
-        for j in range(0, 128):
-            b = 0 + 2 * j
-            palette.append((r, g, b))
-        for j in range(0, 128):
-            b = 255 - 2 * j
-            palette.append((r, g, b))
+        for j in range(0, 85):
+            r = 255 - j * 3
+            palette.append((r, g, b))        
     else :
         palette = [[i,i,i] for i in range(255)]
 
@@ -180,8 +253,7 @@ def start():
     fenetre.destroy()
     
     cadre_acceuil_explo = tk.Tk()
-    cadre_acceuil_explo.iconbitmap("Explorer_image/logo.ico")
-    cadre_acceuil_explo.title("Explorateur de fractale")
+    cadre_acceuil_explo.title("Affichage d'une Image")
     
     # Remplacez le chemin du fichier par le chemin de votre image PNG
     chemin_image = "Explorer_image/Image.png"
@@ -190,31 +262,30 @@ def start():
     img = PhotoImage(file=chemin_image)
     
     # Crée un widget Canvas pour afficher l'image
-    canvas = tk.Canvas(cadre_acceuil_explo, width=réso_x, height=réso_y)
+    canvas = tk.Canvas(cadre_acceuil_explo, width=720, height=555)
     canvas.pack()
     
-    fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i)
+    fractal_builder()
     afficher_image()
     
-    keyboard.hook(explorer)
     cadre_acceuil_explo.mainloop()
 
 bouton_start_explo = tk.Button(cadre_acceuil, text="Commencer l'exploration", font=("Consolas",15), bg="white", fg="black", command = start)
 bouton_start_explo.place(x=230,y=495)
     
-def fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i, N_iteration = 100,nom_img='Explorer_image/Image.png'):
-    global choix_fract,img
+def fractal_builder(N_iteration = 100,nom_img='Explorer_image/Image.png',resox=320,resoy=222):
+    global xmax, xmin, ymax, ymin, r, g, b, palette, choix_fract,compl_r,compl_i,img
     
     palette = np.array(palette, dtype=np.uint8)
 
     # Créer une grille de coordonnées complexes
-    x = np.linspace(xmin, xmax, réso_x)
-    y = np.linspace(ymin, ymax, réso_y)
+    x = np.linspace(xmin, xmax, resox)
+    y = np.linspace(ymin, ymax, resoy)
     X, Y = np.meshgrid(x, y)
     Z = X + 1J * Y
 
     # Initialiser une matrice d'indices pour la palette
-    indices_matrix = np.zeros((réso_y, réso_x), dtype=int)
+    indices_matrix = np.zeros((resoy, resox), dtype=int)
 
     for i in range(N_iteration):
         # Mettre à jour les pixels
@@ -235,11 +306,10 @@ def fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,co
     img = Image.fromarray(img_array, 'RGB')
 
     # Sauvegarder l'image
-    img.save(nom_img)
+    img.save(nom_img)    
 
 def previsu():
-    global palette, choix_fract,compl_r,compl_i, réso_x, réso_y, compl_r,compl_i
-    réso_x, réso_y = 240,167
+    global palette, choix_fract,compl_r,compl_i
     selection_palette()
     if liste_deroulante_fractal.get() == "Julia":
         choix_fract = 0
@@ -247,7 +317,7 @@ def previsu():
         choix_fract = 1
    
     compl_r,compl_i = chmp_str_c_r_julia.get(),chmp_str_c_i_julia.get()
-    fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i)
+    fractal_builder(100,'Explorer_image/Image.png',240,167)
     prévi = PhotoImage(file="Explorer_image/Image.png")
     label_image = tk.Label(cadre_acceuil, image=prévi)
     label_image.place(x=245,y=310)
@@ -257,15 +327,25 @@ bouton_prévisualiser = tk.Button(cadre_acceuil, text="Prévisualiser", font=("C
 bouton_prévisualiser.place(x=60,y=495)
 
 def afficher_image():
-    global img
-    img = PhotoImage(file=chemin_image)
-    image_explo = tk.Label(canvas, image=img)
-    image_explo.place(y=0,x=0)
+    global chemin_image, réso_x, réso_y, canvas
+    
+    # Charge l'image et redimensionne-la
+    img = Image.open(chemin_image)
+    img_redim = img.resize((720, 555))
+    
+    # Convertit l'image redimensionnée en un objet PhotoImage
+    photo = ImageTk.PhotoImage(img_redim)
+    
+    # Affiche l'image sur le Canvas
+    canvas.create_image(0, 0, anchor=tk.NW, image=photo)
+    
+    # Garde une référence à l'objet PhotoImage pour éviter que Python ne le supprime
+    canvas.image = photo
 
 nbr_img = 0
 
 def explorer(action):
-    global xmax, xmin, ymax, ymin,img,nbr_img,réso_x, réso_y,compl_r,compl_i
+    global xmax, xmin, ymax, ymin,img,nbr_img
     x = xmax - xmin
     y = ymax - ymin
     
@@ -274,34 +354,34 @@ def explorer(action):
         xmin = xmin - (x/20)*-1
         ymax = ymax - (y/20)
         ymin = ymin - (y/20)*-1
-        fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i)
+        fractal_builder()
         afficher_image()      
     elif keyboard.is_pressed('down'):#zoom arrière
         xmax = xmax + (x/20)
         xmin = xmin + (x/20)*-1
         ymax = ymax + (y/20)
         ymin = ymin + (y/20)*-1
-        fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i)
+        fractal_builder()
         afficher_image()
     elif keyboard.is_pressed('z'):
         ymax = ymax - (y/40)
         ymin = ymin - (y/40)
-        fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i)
+        fractal_builder()
         afficher_image()
     elif keyboard.is_pressed('s'):
         ymax = ymax + (y/40)
         ymin = ymin + (y/40)
-        fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i)
+        fractal_builder()
         afficher_image()
     elif keyboard.is_pressed('q'):
         xmax = xmax - (x/40)
         xmin = xmin - (x/40)
-        fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i)
+        fractal_builder()
         afficher_image()
     elif keyboard.is_pressed('d'):
         xmax = xmax + (x/40)
         xmin = xmin + (x/40)
-        fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i)
+        fractal_builder()
         afficher_image()
     elif keyboard.is_pressed('m'):
         print("xmax = ",xmax)
@@ -311,7 +391,7 @@ def explorer(action):
     elif keyboard.is_pressed('c'):
         print("Image enregistrée !")
         nbr_img +=1
-        fractal_builder(xmax, xmin, ymax, ymin,réso_x, réso_y, palette, compl_r,compl_i,100,'Explorer_image/Image_saved'+str(nbr_img)+'.png')
+        fractal_builder(100,'Explorer_image/Image_saved'+str(nbr_img)+'.png',1040,721)
         afficher_image()
         print(nbr_img)
         
@@ -323,8 +403,8 @@ menubar = tk.Menu(fenetre)
 
 # Ajout des commandes directement au menu principal
 menubar.add_command(label="Acceuil", command=affiche_acceuil)
-menubar.add_command(label="Guide des touches", command=affiche_tuto)
 menubar.add_command(label="Bibliothèque", command=affiche_biblio)
+menubar.add_command(label="Guide des touches", command=affiche_tuto)
 
 # Configuration de la fenêtre avec la barre de menus
 fenetre.config(menu=menubar)
@@ -332,4 +412,8 @@ fenetre.config(menu=menubar)
 # Initialisation de la pile des cadres
 cadre_pile = [cadre_acceuil]
 
+# Attachez la fonction de gestion des événements
+keyboard.hook(explorer)
 fenetre.mainloop()
+# Gardez le script en cours d'exécution
+keyboard.wait('esc')  # Attend jusqu'à ce que la touche Échap soit enfoncée
